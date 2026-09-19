@@ -1,0 +1,114 @@
+/* Custom styles for specific interactions */
+body { 
+    -webkit-tap-highlight-color: transparent; 
+}
+.hide-scrollbar::-webkit-scrollbar { 
+    display: none; 
+}
+.hide-scrollbar { 
+    -ms-overflow-style: none; 
+    scrollbar-width: none; 
+}
+
+/* Drag & Drop Styles for Categories */
+.dragging {
+    position: relative;
+    z-index: 50;
+    background: #eef2ff !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+    transform: scale(1.02);
+}
+.drag-handle { 
+    touch-action: none; 
+    user-select: none; 
+}
+
+/* Modern UI Additions */
+.modern-cover-img {
+    width: 100%;
+    height: 190px;
+    object-fit: cover;
+    border-radius: 24px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border: 4px solid #ffffff;
+    animation: fadeInDown 0.7s ease-out;
+}
+
+.modern-total-card {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    box-shadow: 0 12px 25px rgba(16, 185, 129, 0.25) !important;
+    border: 2px solid #ecfdf5;
+    animation: popIn 0.5s ease-out;
+    margin-bottom: 16px;
+}
+
+/* Animations */
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes popIn {
+    0% { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+    /* ဒုတိယပုံမှ Reference ယူထားသော Background နှင့် Glassmorphism Styles */
+    .bg-app-custom {
+        /* ရေခဲ/ရေလှိုင်း နောက်ခံပုံ */
+        background-image: url('https://images.unsplash.com/photo-1559825481-12a05cc00344?q=80&w=1080&auto=format&fit=crop');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+    
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.35);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    }
+
+    .glass-btn {
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 24px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .glass-btn:active {
+        background: rgba(255, 255, 255, 0.6);
+        transform: scale(0.95);
+    }
+
+    /* Source 6 မှ Log in Button ကို Reference ယူထားသည် */
+    .btn-black-pill {
+        background: linear-gradient(145deg, #2a2a2a, #000000);
+        color: white;
+        border-radius: 9999px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.2s ease;
+    }
+    .btn-black-pill:active {
+        transform: scale(0.96);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    /* အပြာရောင် အရော (Gradient) Pill Button Style */
+.btn-blue-pill {
+    background: linear-gradient(145deg, #4f46e5, #3b82f6);
+    color: white;
+    border-radius: 9999px;
+    box-shadow: 0 10px 25px rgba(79, 70, 229, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease;
+}
+.btn-blue-pill:active {
+    transform: scale(0.96);
+    box-shadow: 0 5px 15px rgba(79, 70, 229, 0.25);
+}
