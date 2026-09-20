@@ -2,8 +2,7 @@
 <html lang="my">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- PWA Setup -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    <!-- PWA Setup -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4f46e5">
     <link rel="apple-touch-icon" href="img/icon-192.png?v=4">
@@ -40,9 +39,9 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased overflow-x-hidden selection:bg-indigo-100 selection:text-indigo-900 relative">
     
-    <!-- Toast Notification (အောက်သို့ နည်းနည်းချပေးထားသည်) -->
-    <div id="toastMessage" class="fixed top-28 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-2xl z-[999] opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 translate-y-[-20px] min-w-[250px] border border-slate-700">
-        <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
+    <!-- Toast Notification -->
+    <div id="toastMessage" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-2xl z-[999] opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 translate-y-[20px] min-w-[250px] border border-slate-700"></div>
+    <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
         </div>
         <span id="toastText" class="font-bold text-sm leading-snug">စာရင်းသွင်းပြီးပါပြီ</span>
@@ -283,13 +282,14 @@
 
         <div class="p-4 max-w-lg mx-auto w-full flex-grow space-y-4 mt-2">
             
+            <!-- အသစ်ထည့်ရန် Box (အစိမ်းရောင် Box ကြီးကို လုံးဝဖယ်ရှားပြီး "စုစုပေါင်း" ကို ဒီခေါင်းစဉ်ဘေးသို့ တိုက်ရိုက်ထည့်ထားသည်) -->
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="font-bold text-slate-800 flex items-center gap-2">
                         <span class="text-xl">⚖️</span> အသစ်ထည့်ရန်
                     </h3>
                     
-                    <!-- စုစုပေါင်း အလေးချိန် (အသစ်ထည့်ရန် ခေါင်းစဉ်ဘေးတွင် ကွက်တိရောက်ရှိနေပြီဖြစ်သည်) -->
+                    <!-- စုစုပေါင်း အလေးချိန် (ဒီနေရာတွင် ကွက်တိပေါ်နေမည်) -->
                     <div class="bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 flex items-baseline gap-1.5 shadow-sm text-emerald-800">
                         <span class="text-[10px] font-bold uppercase tracking-wide opacity-90">စုစုပေါင်း</span>
                         <span id="overallTotal" class="text-xl font-extrabold text-emerald-600">0</span>
@@ -557,7 +557,7 @@
                 });
 
                 const observer = new MutationObserver((mutations) => {
-                    mutations.dates && mutations.forEach((m) => {
+                    mutations.forEach((m) => {
                         if(m.attributeName === 'class') {
                             if(selectEl.classList.contains('opacity-50')) {
                                 btnEl.classList.add('opacity-50', 'pointer-events-none', 'bg-slate-50');

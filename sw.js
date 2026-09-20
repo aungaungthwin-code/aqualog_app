@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aqualog-cache-v4';
+const CACHE_NAME = 'aqualog-cache-v5';
 const urlsToCache = [
     './',
     './index.html',
@@ -15,6 +15,22 @@ self.addEventListener('install', event => {
         caches.open(CACHE_NAME)
         .then(cache => {
             return cache.addAll(urlsToCache);
+        })
+    );
+});
+
+// Cache အဟောင်းများကို အလိုလို ဖျက်ပစ်ရန် ဤနေရာကို ထည့်သွင်းထားသည်
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('Old cache deleted:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
         })
     );
 });
