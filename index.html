@@ -29,7 +29,6 @@
     <!-- Flatpickr (Custom Date Picker Library) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
-        /* Theme color for Date Picker */
         .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day.selected:focus, .flatpickr-day.startRange:focus, .flatpickr-day.endRange:focus, .flatpickr-day.selected:hover, .flatpickr-day.startRange:hover, .flatpickr-day.endRange:hover, .flatpickr-day.selected.prevMonthDay, .flatpickr-day.startRange.prevMonthDay, .flatpickr-day.endRange.prevMonthDay, .flatpickr-day.selected.nextMonthDay, .flatpickr-day.startRange.nextMonthDay, .flatpickr-day.endRange.nextMonthDay {
             background: #4f46e5 !important;
             border-color: #4f46e5 !important;
@@ -41,7 +40,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased overflow-x-hidden selection:bg-indigo-100 selection:text-indigo-900 relative">
     
-    <!-- Toast Notification (အပေါ်အရမ်းမကပ်စေရန် top-28 သို့ ပြောင်းထားသည်) -->
+    <!-- Toast Notification (အောက်သို့ နည်းနည်းချပေးထားသည်) -->
     <div id="toastMessage" class="fixed top-28 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-2xl z-[999] opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 translate-y-[-20px] min-w-[250px] border border-slate-700">
         <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
@@ -153,7 +152,6 @@
         </div>
 
         <div class="p-4 max-w-lg mx-auto w-full flex-grow pb-10">
-            <!-- Filter Options -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-4">
                 <div class="flex gap-2 mb-3">
                     <button id="filterOverallBtn" class="flex-1 py-2 text-sm font-bold rounded-lg bg-primary text-white transition-colors">အားလုံး</button>
@@ -164,21 +162,11 @@
                     <div class="flex gap-2 w-full">
                         <div class="flex-1">
                             <label class="text-[10px] text-slate-500 font-bold ml-1 mb-1 block">စတင်မည့်ရက်</label>
-                            <div class="relative">
-                                <input type="text" id="reportStartDate" readonly class="w-full px-3 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-slate-800 text-sm font-medium shadow-sm pr-9 cursor-pointer placeholder-slate-400" placeholder="ရက်စွဲရွေးပါ">
-                                <div class="absolute right-0 top-1/2 -translate-y-1/2 pr-3 pointer-events-none text-slate-400">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                </div>
-                            </div>
+                            <input type="text" id="reportStartDate" readonly class="w-full px-3 py-3 bg-white border border-slate-200 rounded-xl outline-none text-slate-800 text-sm font-medium shadow-sm cursor-pointer placeholder-slate-400" placeholder="ရက်စွဲရွေးပါ">
                         </div>
                         <div class="flex-1">
                             <label class="text-[10px] text-slate-500 font-bold ml-1 mb-1 block">ဆုံးမည့်ရက်</label>
-                            <div class="relative">
-                                <input type="text" id="reportEndDate" readonly class="w-full px-3 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-slate-800 text-sm font-medium shadow-sm pr-9 cursor-pointer placeholder-slate-400" placeholder="ရက်စွဲရွေးပါ">
-                                <div class="absolute right-0 top-1/2 -translate-y-1/2 pr-3 pointer-events-none text-slate-400">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                </div>
-                            </div>
+                            <input type="text" id="reportEndDate" readonly class="w-full px-3 py-3 bg-white border border-slate-200 rounded-xl outline-none text-slate-800 text-sm font-medium shadow-sm cursor-pointer placeholder-slate-400" placeholder="ရက်စွဲရွေးပါ">
                         </div>
                     </div>
                     <button id="applyCustomDateBtn" class="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-sm transition-all shadow-sm active:scale-95">
@@ -253,12 +241,12 @@
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6">
                 <div class="mb-5">
                     <label class="block text-sm font-semibold text-slate-700 mb-2">ဘောင်ချာနံပါတ်</label>
-                    <input type="text" id="voucherNumber" placeholder="ဘောင်ချာနံပါတ် ရိုက်ထည့်ပါ" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
+                    <input type="text" id="voucherNumber" placeholder="ဘောင်ချာနံပါတ် ရိုက်ထည့်ပါ" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-2">နေ့စွဲ</label>
                     <div class="relative">
-                        <input type="text" id="voucherDate" readonly class="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-slate-800 font-medium shadow-sm pr-10 cursor-pointer placeholder-slate-400" placeholder="ရက်စွဲရွေးပါ">
+                        <input type="text" id="voucherDate" readonly class="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-xl outline-none text-slate-800 font-medium shadow-sm pr-10 cursor-pointer placeholder-slate-400" placeholder="ရက်စွဲရွေးပါ">
                         <div class="absolute right-0 top-1/2 -translate-y-1/2 pr-4 pointer-events-none text-slate-400">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         </div>
@@ -271,7 +259,7 @@
         </div>
     </div>
 
-    <!-- Recording Screen (စာရင်းသွင်းရန် စာမျက်နှာ - ဖုံးနေသည့်ပြဿနာမရှိတော့ပါ) -->
+    <!-- Recording Screen -->
     <div id="recordingScreen" class="hidden min-h-screen flex-col bg-slate-50 pb-8">
         <div class="bg-gradient-to-r from-primary to-secondary shadow-md px-4 py-3 flex flex-col">
             <div class="flex items-center text-white mb-3">
@@ -295,14 +283,13 @@
 
         <div class="p-4 max-w-lg mx-auto w-full flex-grow space-y-4 mt-2">
             
-            <!-- စုစုပေါင်း Box အကြီးကို ဖြုတ်ပြီး အသစ်ထည့်ရန် ခေါင်းစဉ်ဘေးသို့ ရွှေ့လိုက်ပါသည် -->
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="font-bold text-slate-800 flex items-center gap-2">
                         <span class="text-xl">⚖️</span> အသစ်ထည့်ရန်
                     </h3>
                     
-                    <!-- စုစုပေါင်း အလေးချိန် (ကျစ်ကျစ်လျစ်လျစ်ဖြင့် နေရာချထားသည်) -->
+                    <!-- စုစုပေါင်း အလေးချိန် (အသစ်ထည့်ရန် ခေါင်းစဉ်ဘေးတွင် ကွက်တိရောက်ရှိနေပြီဖြစ်သည်) -->
                     <div class="bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 flex items-baseline gap-1.5 shadow-sm text-emerald-800">
                         <span class="text-[10px] font-bold uppercase tracking-wide opacity-90">စုစုပေါင်း</span>
                         <span id="overallTotal" class="text-xl font-extrabold text-emerald-600">0</span>
@@ -313,7 +300,7 @@
                 <div class="mb-4">
                     <label class="block text-sm font-semibold text-slate-700 mb-2">ငါးအမျိုးအစား</label>
                     <div class="relative" id="customFishCategoryDropdown">
-                        <button type="button" id="fishCategoryBtn" class="w-full flex justify-between items-center px-4 py-3.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-slate-500 font-medium shadow-sm active:scale-[0.98]">
+                        <button type="button" id="fishCategoryBtn" class="w-full flex justify-between items-center px-4 py-3.5 bg-white border border-slate-200 rounded-xl outline-none text-slate-500 font-medium shadow-sm active:scale-[0.98]">
                             <span id="fishCategoryLabel">ငါးအမျိုးအစား ရွေးပါ...</span>
                             <div class="text-primary pointer-events-none">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
@@ -321,9 +308,7 @@
                         </button>
                         
                         <div id="fishCategoryMenu" class="hidden absolute z-50 w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-2xl max-h-56 overflow-y-auto overscroll-contain ring-1 ring-black/5">
-                            <ul id="fishCategoryListWrapper" class="text-slate-700 font-medium text-[15px]">
-                                <!-- Options will be injected here via JS -->
-                            </ul>
+                            <ul id="fishCategoryListWrapper" class="text-slate-700 font-medium text-[15px]"></ul>
                         </div>
                         
                         <select id="fishCategory" class="hidden">
@@ -334,7 +319,7 @@
 
                 <div class="mb-4">
                     <label class="block text-sm font-semibold text-slate-700 mb-2">အလေးချိန် (ပိဿာ)</label>
-                    <input type="number" inputmode="decimal" id="fishWeight" placeholder="0.00" step="0.01" min="0" class="w-full px-4 py-3 text-lg font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-slate-800">
+                    <input type="number" inputmode="decimal" id="fishWeight" placeholder="0.00" step="0.01" min="0" class="w-full px-4 py-3 text-lg font-semibold bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-800">
                 </div>
 
                 <button id="addEntryBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 rounded-xl shadow transition-all active:scale-95 flex justify-center items-center gap-2">
@@ -369,7 +354,7 @@
 
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                     <label class="block text-sm font-semibold text-slate-700 mb-2">မှတ်ချက် (အခြားရေးရန်ရှိပါက)</label>
-                    <textarea id="voucherRemark" placeholder="မှတ်ချက်ရေးရန် (မရေးလည်းရပါသည်)..." rows="3" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-slate-700 resize-none"></textarea>
+                    <textarea id="voucherRemark" placeholder="မှတ်ချက်ရေးရန် (မရေးလည်းရပါသည်)..." rows="3" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700 resize-none"></textarea>
                 </div>
             </div>
 
@@ -400,11 +385,11 @@
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
-                    <input type="text" id="historySearch" placeholder="ဘောင်ချာ (သို့) အမည် ဖြင့်ရှာရန်..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-all text-sm">
+                    <input type="text" id="historySearch" placeholder="ဘောင်ချာ (သို့) အမည် ဖြင့်ရှာရန်..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
                 </div>
                 <div class="flex gap-2">
                     <div class="relative flex-grow">
-                        <input type="text" id="historyDate" readonly class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-all text-sm font-medium text-slate-800 shadow-sm pr-10 cursor-pointer placeholder-slate-400" placeholder="ရက်စွဲရွေးပါ">
+                        <input type="text" id="historyDate" readonly class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none text-sm font-medium text-slate-800 shadow-sm pr-10 cursor-pointer placeholder-slate-400" placeholder="ရက်စွဲရွေးပါ">
                         <div class="absolute right-0 top-1/2 -translate-y-1/2 pr-3 pointer-events-none text-slate-400">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         </div>
@@ -413,9 +398,7 @@
                 </div>
             </div>
 
-            <div id="historyList" class="space-y-4 pb-10">
-                <!-- Vouchers generated here -->
-            </div>
+            <div id="historyList" class="space-y-4 pb-10"></div>
         </div>
     </div>
 
@@ -435,9 +418,7 @@
         </div>
 
         <div class="p-4 max-w-lg mx-auto w-full flex-grow pb-10">
-            <div id="voucherDetailContent" class="space-y-4">
-                <!-- Detail Content -->
-            </div>
+            <div id="voucherDetailContent" class="space-y-4"></div>
         </div>
     </div>
 
@@ -454,7 +435,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6">
                 <label class="block text-sm font-semibold text-slate-700 mb-2">ငါးအမည် အသစ်ထည့်ရန်</label>
                 <div class="flex gap-2">
-                    <input type="text" id="newCategoryInput" placeholder="အမည်ရိုက်ထည့်ပါ" class="flex-grow px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all">
+                    <input type="text" id="newCategoryInput" placeholder="အမည်ရိုက်ထည့်ပါ" class="flex-grow px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none">
                     <button id="addCategoryBtn" class="px-5 py-3 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-900 transition-colors shadow">
                         Add
                     </button>
@@ -462,9 +443,7 @@
             </div>
 
             <h3 class="font-bold text-slate-700 mb-3 px-1 text-sm uppercase tracking-wide">လက်ရှိငါးအမည်များ</h3>
-            <div id="categoryList" class="space-y-2 touch-pan-y">
-                <!-- Category items -->
-            </div>
+            <div id="categoryList" class="space-y-2 touch-pan-y"></div>
             <p class="text-xs text-slate-400 text-center mt-4 italic">(⠿) ကိုဖိ၍ အထက်အောက် ရွှေ့နိုင်သည်။</p>
         </div>
     </div>
@@ -578,7 +557,7 @@
                 });
 
                 const observer = new MutationObserver((mutations) => {
-                    mutations.forEach((m) => {
+                    mutations.dates && mutations.forEach((m) => {
                         if(m.attributeName === 'class') {
                             if(selectEl.classList.contains('opacity-50')) {
                                 btnEl.classList.add('opacity-50', 'pointer-events-none', 'bg-slate-50');
