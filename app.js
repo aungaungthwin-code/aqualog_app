@@ -72,7 +72,6 @@ modalConfirmBtn.addEventListener('click', () => {
 // ==============================
 // Navigation & Unified Back Button Logic
 // ==============================
-// စာမျက်နှာအကူးအပြောင်းတွင် History ကို Replace လုပ်မည့်စနစ် (replaceState) ထပ်ထည့်ထားသည်
 function showScreen(screenId, pushHistory = true, replaceState = false) {
     const screens = ['splashScreen', 'nameScreen', 'homeScreen', 'voucherScreen', 'recordingScreen', 'historyScreen', 'detailScreen', 'categoryScreen', 'reportScreen', 'backupRestoreScreen'];
     screens.forEach(s => {
@@ -88,10 +87,14 @@ function showScreen(screenId, pushHistory = true, replaceState = false) {
         }
     });
 
+    // (FIX): မှတ်တမ်းစာမျက်နှာသို့ ရောက်တိုင်း UI ကို အလိုလို Refresh လုပ်ပေးမည်
+    if (screenId === 'historyScreen') {
+        displayHistory();
+    }
+
     if (pushHistory && screenId !== 'splashScreen') {
         try {
             if (replaceState) {
-                // အလယ်စာမျက်နှာများကို ကျော်ရန်အတွက် ယခင်လမ်းကြောင်းကို အစားထိုးခြင်း
                 history.replaceState({ screen: screenId }, "", "#" + screenId);
             } else {
                 history.pushState({ screen: screenId }, "", "#" + screenId);
@@ -102,24 +105,19 @@ function showScreen(screenId, pushHistory = true, replaceState = false) {
     }
 }
 
-// App အတွင်းမှ ခလုတ်နှိပ်သည်ဖြစ်စေ၊ ဖုန်း Hardware Back နှိပ်သည်ဖြစ်စေ ဤနေရာတစ်ခုတည်းမှ ထိန်းချုပ်မည်
 window.addEventListener('popstate', (e) => {
     const targetScreen = e.state ? e.state.screen : 'homeScreen';
     const recordingScreen = document.getElementById('recordingScreen');
-    
-    // စာရင်းသွင်းနေစဉ် Back နှိပ်မိပါက Alert တက်မည်
+
     if (recordingScreen && !recordingScreen.classList.contains('hidden') && voucherStatus === "OPEN") {
         showConfirm("ဘောင်ချာ ဖွင့်ထားဆဲဖြစ်သည်", "ဤဘောင်ချာကို မပိတ်ရသေးပါ။ အနောက်သို့ ပြန်ထွက်ရန် သေချာပါသလား?", 
         () => { 
-            // "မှန်ကန်ပါသည်" နှိပ်လျှင် Home (သို့မဟုတ် targetScreen) သို့ ထွက်မည်
             showScreen(targetScreen, false); 
         }, 
         () => { 
-            // "မလုပ်တော့ပါ" နှိပ်လျှင် လက်ရှိစာမျက်နှာကို History တွင် ပြန်ထည့်မည်
             try { history.pushState({ screen: 'recordingScreen' }, "", "#recordingScreen"); } catch(err){}
         });
     } else {
-        // ဘောင်ချာပိတ်ပြီးသားဆိုလျှင် (သို့မဟုတ် အခြားစာမျက်နှာဖြစ်လျှင်) တိုက်ရိုက် ထွက်မည်
         showScreen(targetScreen, false);
     }
 });
@@ -144,19 +142,15 @@ continueBtn.addEventListener("click", function () {
         showAlert("လိုအပ်ပါသည်", "ကျေးဇူးပြု၍ သင့်အမည်ကို ရိုက်ထည့်ပါ။");
         return;
     }
-    try { localStorage.setItem("userName", userName); } catch(e) {}
+    localStorage.setItem("userName", userName);
     if(welcomeMessage) welcomeMessage.textContent = "မင်္ဂလာပါ, " + userName;
     showScreen('homeScreen');
 });
 
 window.addEventListener('DOMContentLoaded', () => {
     setTimeout(function () {
-        try {
-            const savedName = localStorage.getItem("userName");
-            if(savedName && userNameInput) userNameInput.value = savedName; 
-        } catch(e) {
-            console.warn("Local storage restricted");
-        }
+        const savedName = localStorage.getItem("userName");
+        if(savedName && userNameInput) userNameInput.value = savedName; 
         showScreen('nameScreen', false); 
         try {
             history.replaceState({ screen: 'nameScreen' }, "", "#nameScreen");
@@ -186,7 +180,6 @@ document.getElementById("backupMenuBtn").addEventListener("click", () => {
     showScreen('backupRestoreScreen');
 });
 
-// App အတွင်းမှ ခလုတ်နှိပ်လျှင် ဖုန်း Hardware Back နှိပ်သကဲ့သို့ (popstate ကိုလှမ်းခေါ်ရန်) အလုပ်လုပ်စေမည်
 function goBackSafe() {
     try { history.back(); } catch(e) { showScreen('homeScreen'); }
 }
@@ -230,8 +223,7 @@ function renderReport(filterType) {
         if(customDateFilter) customDateFilter.classList.remove('hidden');
     }
 
-    let vouchers = [];
-    try { vouchers = JSON.parse(localStorage.getItem("vouchers") || "[]"); } catch(e){}
+    let vouchers = JSON.parse(localStorage.getItem("vouchers") || "[]");
     let filteredVouchers = vouchers;
     const today = new Date();
 
@@ -312,8 +304,7 @@ document.getElementById('applyCustomDateBtn').addEventListener('click', () => re
 // Data Backup & Restore (Excel)
 // ==============================
 document.getElementById("exportDataBtn").addEventListener("click", () => {
-    let vouchers = [];
-    try { vouchers = JSON.parse(localStorage.getItem("vouchers") || "[]"); } catch(e){}
+    let vouchers = JSON.parse(localStorage.getItem("vouchers") || "[]");
     if (vouchers.length === 0) {
         showAlert("အချက်အလက် မရှိပါ", "Excel ဖြင့်ထုတ်ရန် မှတ်တမ်း မရှိသေးပါ။");
         return;
@@ -416,7 +407,7 @@ document.getElementById('importCsvInput').addEventListener('change', function(e)
 
         const newVouchers = Object.values(voucherMap);
         if(newVouchers.length > 0) {
-            try { localStorage.setItem("vouchers", JSON.stringify(newVouchers)); } catch(err){}
+            localStorage.setItem("vouchers", JSON.stringify(newVouchers));
             showAlert("အောင်မြင်ပါသည်", "အချက်အလက်များကို အောင်မြင်စွာ ပြန်လည်ထည့်သွင်းပြီးပါပြီ။");
         } else {
             showAlert("အမှား", "ဖိုင်ထဲမှ အချက်အလက်များကို ဆွဲယူ၍ မရပါ။");
@@ -439,24 +430,22 @@ let touchDragStartY = 0;
 
 function getCategories() {
     const defaultCats = ["ငါးမြစ်ချင်း", "ငါးကြင်း", "ငါးခေါင်းပွ", "ငါးရွှေဝါ", "ငါးဒန်", "ကက်ကဒစ်", "တီလားဘီးယား", "ငါးဖယ်", "ငါးခုံးမ", "ငါးနုတ်စုံ"];
-    try {
-        const saved = localStorage.getItem("categories");
-        if (saved) {
-            let parsedCats = JSON.parse(saved);
-            if (!parsedCats.includes("တီလားဘီးယား")) {
-                const mergedCats = [...new Set([...defaultCats, ...parsedCats])];
-                localStorage.setItem("categories", JSON.stringify(mergedCats));
-                return mergedCats;
-            }
-            return parsedCats;
+    const saved = localStorage.getItem("categories");
+    if (saved) {
+        let parsedCats = JSON.parse(saved);
+        if (!parsedCats.includes("တီလားဘီးယား")) {
+            const mergedCats = [...new Set([...defaultCats, ...parsedCats])];
+            localStorage.setItem("categories", JSON.stringify(mergedCats));
+            return mergedCats;
         }
-        localStorage.setItem("categories", JSON.stringify(defaultCats));
-    } catch(e) {}
+        return parsedCats;
+    }
+    localStorage.setItem("categories", JSON.stringify(defaultCats));
     return defaultCats;
 }
 
 function saveCategories(categories) {
-    try { localStorage.setItem("categories", JSON.stringify(categories)); } catch(e){}
+    localStorage.setItem("categories", JSON.stringify(categories));
 }
 
 function populateFishCategoryDropdown() {
@@ -611,8 +600,7 @@ if(fishWeightInput) {
 }
 
 function saveVoucher() {
-    let vouchers = [];
-    try { vouchers = JSON.parse(localStorage.getItem("vouchers") || "[]"); } catch(e){}
+    let vouchers = JSON.parse(localStorage.getItem("vouchers") || "[]");
     const vNo = voucherNumberInput.value.trim();
     const voucher = {
         voucherNumber: vNo,
@@ -631,7 +619,7 @@ function saveVoucher() {
     } else {
         vouchers.push(voucher);
     }
-    try { localStorage.setItem("vouchers", JSON.stringify(vouchers)); } catch(e){}
+    localStorage.setItem("vouchers", JSON.stringify(vouchers));
 }
 
 function updateTotals() {
@@ -685,8 +673,7 @@ document.getElementById("startVoucherBtn").addEventListener("click", function ()
     if (vNo === "") { showAlert("လိုအပ်ပါသည်", "ကျေးဇူးပြု၍ ဘောင်ချာနံပါတ် ထည့်ပါ။"); return; }
     if (vDate === "") { showAlert("လိုအပ်ပါသည်", "ကျေးဇူးပြု၍ နေ့စွဲ ရွေးချယ်ပါ။"); return; }
 
-    let existingVouchers = [];
-    try { existingVouchers = JSON.parse(localStorage.getItem("vouchers") || "[]"); } catch(e){}
+    let existingVouchers = JSON.parse(localStorage.getItem("vouchers") || "[]");
     const dup = existingVouchers.find(v => v.voucherNumber === vNo);
 
     if (dup) {
@@ -712,7 +699,6 @@ document.getElementById("startVoucherBtn").addEventListener("click", function ()
     updateTotals();
     renderRecentEntries();
     
-    // မှတ်တမ်းစာမျက်နှာသို့ သွားသည့်အခါ History တွင် အစားထိုးလိုက်မည် (replaceState: true)
     showScreen('recordingScreen', true, true);
 });
 
@@ -794,8 +780,7 @@ const historySearch = document.getElementById("historySearch");
 const historyDate = document.getElementById("historyDate");
 
 function displayHistory() {
-    let vouchers = [];
-    try { vouchers = JSON.parse(localStorage.getItem("vouchers") || "[]"); } catch(e){}
+    let vouchers = JSON.parse(localStorage.getItem("vouchers") || "[]");
     const search = historySearch.value.trim().toLowerCase();
     const dateF = historyDate.value;
     historyList.innerHTML = "";
@@ -876,10 +861,9 @@ function displayHistory() {
         delBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             showConfirm("ဘောင်ချာဖျက်ရန်", `ဘောင်ချာ "${v.voucherNumber}" ကို ဖျက်ရန် သေချာပါသလား? ဖျက်ပြီးပါက ပြန်ယူ၍ မရနိုင်ပါ။`, () => {
-                let all = [];
-                try { all = JSON.parse(localStorage.getItem("vouchers") || "[]"); } catch(e){}
+                let all = JSON.parse(localStorage.getItem("vouchers") || "[]");
                 all = all.filter(i => i.voucherNumber !== v.voucherNumber);
-                try { localStorage.setItem("vouchers", JSON.stringify(all)); } catch(e){}
+                localStorage.setItem("vouchers", JSON.stringify(all));
                 displayHistory();
             });
         });
@@ -1011,10 +995,10 @@ function openVoucherForEntry(voucher) {
     updateTotals();
     saveVoucher(); 
     
-    // မှတ်တမ်းစာမျက်နှာမှ ဝင်ပါကလည်း အလယ်စာမျက်နှာကို အစားထိုးမည် (replaceState: true)
     showScreen('recordingScreen', true, true);
 }
 
+// (FIX): ပုံထုတ်ရန် (ယခင်အတိုင်း Direct Download ပြန်ပြောင်းထားသည်)
 function exportVoucherAsImage(v) {
     const vEntries = Array.isArray(v.entries) ? v.entries : [];
     const allTotal = vEntries.reduce((sum, e) => sum + (Number(e.weight) || 0), 0);
