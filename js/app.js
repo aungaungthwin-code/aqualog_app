@@ -10,6 +10,23 @@ if ('serviceWorker' in navigator) {
 }
 
 // ==============================
+// Toast Notification (Data ဝင်ကြောင်းပြရန်)
+// ==============================
+function showToast(message) {
+    const toast = document.getElementById('toastMessage');
+    const toastText = document.getElementById('toastText');
+    if(toast && toastText) {
+        toastText.textContent = message;
+        toast.classList.remove('opacity-0', 'translate-y-[-20px]');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        setTimeout(() => {
+            toast.classList.remove('opacity-100', 'translate-y-0');
+            toast.classList.add('opacity-0', 'translate-y-[-20px]');
+        }, 2000);
+    }
+}
+
+// ==============================
 // Modal System
 // ==============================
 const modal = document.getElementById('customModal');
@@ -18,6 +35,7 @@ const modalMessage = document.getElementById('modalMessage');
 const modalCancelBtn = document.getElementById('modalCancelBtn');
 const modalConfirmBtn = document.getElementById('modalConfirmBtn');
 let modalConfirmCallback = null;
+let modalCancelCallback = null; 
 
 function showAlert(title, message) {
     modalTitle.textContent = title;
@@ -25,28 +43,34 @@ function showAlert(title, message) {
     modalCancelBtn.classList.add('hidden');
     modalConfirmBtn.textContent = 'အိုကေ';
     modalConfirmCallback = null;
+    modalCancelCallback = null;
     modal.classList.remove('hidden');
     modal.classList.add('opacity-100');
 }
 
-function showConfirm(title, message, onConfirm) {
+function showConfirm(title, message, onConfirm, onCancel = null) {
     modalTitle.textContent = title;
     modalMessage.textContent = message;
     modalCancelBtn.classList.remove('hidden');
     modalConfirmBtn.textContent = 'မှန်ကန်ပါသည်';
     modalConfirmCallback = onConfirm;
+    modalCancelCallback = onCancel;
     modal.classList.remove('hidden');
     modal.classList.add('opacity-100');
 }
 
-modalCancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
+modalCancelBtn.addEventListener('click', () => {
+    modal.classList.add('hidden');
+    if (modalCancelCallback) modalCancelCallback();
+});
+
 modalConfirmBtn.addEventListener('click', () => {
     modal.classList.add('hidden');
     if (modalConfirmCallback) modalConfirmCallback();
 });
 
 // ==============================
-// Navigation & Hardware Back Button (History API)
+// Navigation & Safe History API (ဖုန်းတိုင်းအတွက်)
 // ==============================
 function showScreen(screenId, pushHistory = true) {
     const screens = ['splashScreen', 'nameScreen', 'homeScreen', 'voucherScreen', 'recordingScreen', 'historyScreen', 'detailScreen', 'categoryScreen', 'reportScreen', 'backupRestoreScreen'];
@@ -63,18 +87,27 @@ function showScreen(screenId, pushHistory = true) {
         }
     });
 
-    // ဖုန်းရဲ့ Back Button အတွက် History ထဲထည့်ခြင်း
     if (pushHistory && screenId !== 'splashScreen') {
-        history.pushState({ screen: screenId }, "", "#" + screenId);
+        try {
+            history.pushState({ screen: screenId }, "", "#" + screenId);
+        } catch (error) {
+            console.warn("History API restricted by device");
+        }
     }
 }
 
-// ဖုန်းရဲ့ Back Button ကို နှိပ်သောအခါ အလုပ်လုပ်မည့်အပိုင်း
 window.addEventListener('popstate', (e) => {
-    if (e.state && e.state.screen) {
-        showScreen(e.state.screen, false); // အနောက်သို့ ပြန်ဆုတ်ပေးမည်
+    const targetScreen = e.state ? e.state.screen : 'homeScreen';
+    
+    const recordingScreen = document.getElementById('recordingScreen');
+    if (recordingScreen && recordingScreen.classList.contains('flex') && voucherStatus === "OPEN") {
+        showConfirm("ဘောင်ချာ ဖွင့်ထားဆဲဖြစ်သည်", "ဤဘောင်ချာကို မပိတ်ရသေးပါ။ အနောက်သို့ ပြန်ထွက်ရန် သေချာပါသလား?", 
+        () => { showScreen(targetScreen, false); }, 
+        () => { 
+            try { history.pushState({ screen: 'recordingScreen' }, "", "#recordingScreen"); } catch(err){}
+        });
     } else {
-        showScreen('homeScreen', false);
+        showScreen(targetScreen, false);
     }
 });
 
@@ -86,7 +119,7 @@ function getStatusBadgeHTML(status) {
 }
 
 // ==============================
-// Name Screen (App ဝင်တိုင်း အမြဲပြမည်)
+// Name Screen & Splash Logic (Freeze မဖြစ်အောင် ပြင်ဆင်ထားသည်)
 // ==============================
 const userNameInput = document.getElementById("userName");
 const continueBtn = document.getElementById("continueBtn");
@@ -98,21 +131,29 @@ continueBtn.addEventListener("click", function () {
         showAlert("လိုအပ်ပါသည်", "ကျေးဇူးပြု၍ သင့်အမည်ကို ရိုက်ထည့်ပါ။");
         return;
     }
-    localStorage.setItem("userName", userName);
-    welcomeMessage.textContent = "မင်္ဂလာပါ, " + userName;
+    try { localStorage.setItem("userName", userName); } catch(e) {}
+    if(welcomeMessage) welcomeMessage.textContent = "မင်္ဂလာပါ, " + userName;
     showScreen('homeScreen');
 });
 
-// Splash Screen
-setTimeout(function () {
-    const savedName = localStorage.getItem("userName");
-    if(savedName) userNameInput.value = savedName; 
-    showScreen('nameScreen', false); 
-    history.replaceState({ screen: 'nameScreen' }, "", "#nameScreen"); // Initial State
-}, 3500); 
+// Splash Screen ကို အချိန် 2.5 စက္ကန့်သာ ထားရှိပြီး Error ကို ကျော်ဖြတ်မည်
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(function () {
+        try {
+            const savedName = localStorage.getItem("userName");
+            if(savedName && userNameInput) userNameInput.value = savedName; 
+        } catch(e) {
+            console.warn("Local storage restricted");
+        }
+        showScreen('nameScreen', false); 
+        try {
+            history.replaceState({ screen: 'nameScreen' }, "", "#nameScreen");
+        } catch(e) {}
+    }, 2500); 
+});
 
 // ==============================
-// ပင်မစာမျက်နှာ ခလုတ်များ
+// ခလုတ်နှိပ်လျှင် Back ပြန်ခြင်းများ
 // ==============================
 document.getElementById("createVoucherBtn").addEventListener("click", () => showScreen('voucherScreen'));
 document.getElementById("historyBtn").addEventListener("click", () => {
@@ -133,26 +174,20 @@ document.getElementById("backupMenuBtn").addEventListener("click", () => {
     showScreen('backupRestoreScreen');
 });
 
-// Back Buttons များကို နှိပ်လျှင် ဖုန်း Back နှိပ်သကဲ့သို့ အနောက်သို့ ဆုတ်မည်
-document.getElementById("backHomeBtn").addEventListener("click", () => history.back());
-document.getElementById("backCategoryBtn").addEventListener("click", () => history.back());
-document.getElementById("backHistoryBtn").addEventListener("click", () => history.back());
-document.getElementById("backReportBtn").addEventListener("click", () => history.back());
-document.getElementById("backBackupBtn").addEventListener("click", () => history.back());
-document.getElementById("backDetailBtn").addEventListener("click", () => history.back());
+function goBackSafe() {
+    try { history.back(); } catch(e) { showScreen('homeScreen'); }
+}
 
-document.getElementById("backVoucherBtn").addEventListener("click", function () {
-    if (voucherStatus === "OPEN") {
-        showConfirm("ဘောင်ချာ ဖွင့်ထားဆဲဖြစ်သည်", "ဤဘောင်ချာကို မပိတ်ရသေးပါ။ အနောက်သို့ ပြန်ထွက်ရန် သေချာပါသလား?", () => {
-            history.back();
-        });
-    } else {
-        history.back();
-    }
-});
+document.getElementById("backHomeBtn").addEventListener("click", goBackSafe);
+document.getElementById("backCategoryBtn").addEventListener("click", goBackSafe);
+document.getElementById("backHistoryBtn").addEventListener("click", goBackSafe);
+document.getElementById("backReportBtn").addEventListener("click", goBackSafe);
+document.getElementById("backBackupBtn").addEventListener("click", goBackSafe);
+document.getElementById("backDetailBtn").addEventListener("click", goBackSafe);
+document.getElementById("backVoucherBtn").addEventListener("click", goBackSafe);
 
 // ==============================
-// Dashboard & Chart (အစီရင်ခံစာ)
+// Dashboard & Chart
 // ==============================
 let reportChartInstance = null;
 
@@ -162,8 +197,8 @@ function renderReport(filterType) {
     const filterCustomBtn = document.getElementById('filterCustomBtn');
     const customDateFilter = document.getElementById('customDateFilter');
 
-    // ခလုတ်အရောင်ပြောင်းခြင်း
     [filterOverallBtn, filterMonthBtn, filterCustomBtn].forEach(btn => {
+        if(!btn) return;
         btn.classList.remove('bg-primary', 'text-white');
         btn.classList.add('bg-slate-100', 'text-slate-600');
     });
@@ -171,18 +206,19 @@ function renderReport(filterType) {
     if(filterType === 'overall') {
         filterOverallBtn.classList.add('bg-primary', 'text-white');
         filterOverallBtn.classList.remove('bg-slate-100', 'text-slate-600');
-        customDateFilter.classList.add('hidden');
+        if(customDateFilter) customDateFilter.classList.add('hidden');
     } else if(filterType === 'month') {
         filterMonthBtn.classList.add('bg-primary', 'text-white');
         filterMonthBtn.classList.remove('bg-slate-100', 'text-slate-600');
-        customDateFilter.classList.add('hidden');
+        if(customDateFilter) customDateFilter.classList.add('hidden');
     } else {
         filterCustomBtn.classList.add('bg-primary', 'text-white');
         filterCustomBtn.classList.remove('bg-slate-100', 'text-slate-600');
-        customDateFilter.classList.remove('hidden');
+        if(customDateFilter) customDateFilter.classList.remove('hidden');
     }
 
-    const vouchers = JSON.parse(localStorage.getItem("vouchers") || "[]");
+    let vouchers = [];
+    try { vouchers = JSON.parse(localStorage.getItem("vouchers") || "[]"); } catch(e){}
     let filteredVouchers = vouchers;
     const today = new Date();
 
@@ -201,72 +237,56 @@ function renderReport(filterType) {
         }
     }
 
-    // တွက်ချက်ခြင်း နှင့် လုံးပေါင်းရှာခြင်း
     const catTotals = {};
-    let grandTotal = 0; // လုံးပေါင်းအတွက် Variable သတ်မှတ်ခြင်း
+    let grandTotal = 0; 
 
     filteredVouchers.forEach(v => {
         if (v.entries) {
             v.entries.forEach(e => {
                 catTotals[e.category] = (catTotals[e.category] || 0) + e.weight;
-                grandTotal += e.weight; // ရှိသမျှ အလေးချိန်များကို ပေါင်းထည့်ခြင်း
+                grandTotal += e.weight;
             });
         }
     });
 
-    // လုံးပေါင်းကို UI တွင် ပြသခြင်း (ကော်မာများဖြင့်)
     const reportGrandTotalEl = document.getElementById('reportGrandTotal');
     if(reportGrandTotalEl) {
         reportGrandTotalEl.textContent = grandTotal.toLocaleString();
     }
 
-    // အများဆုံးမှ အနည်းဆုံး စီခြင်း
     const sortedCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
     const labels = sortedCats.map(item => item[0]);
     const data = sortedCats.map(item => item[1]);
 
-    // Chart.js ဆွဲခြင်း
-    const ctx = document.getElementById('myChart').getContext('2d');
-    if (reportChartInstance) reportChartInstance.destroy();
-
-    reportChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'အလေးချိန် (ပိဿာ)',
-                data: data,
-                backgroundColor: '#4f46e5',
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true } },
-            plugins: {
-                legend: { display: false }
-            }
-        }
-    });
-
-    // အောက်ခြေ List ပြခြင်း
-    const listEl = document.getElementById('reportList');
-    listEl.innerHTML = '';
-    if (sortedCats.length === 0) {
-        listEl.innerHTML = '<p class="text-slate-400 text-sm italic text-center py-4">အချက်အလက် မရှိပါ</p>';
-    } else {
-        sortedCats.forEach(([cat, weight], index) => {
-            listEl.innerHTML += `
-                <div class="flex justify-between items-center bg-slate-50 border border-slate-100 p-3 rounded-xl">
-                    <div class="flex items-center gap-3">
-                        <span class="w-6 h-6 rounded-full bg-indigo-100 text-primary flex items-center justify-center text-xs font-bold">${index + 1}</span>
-                        <span class="font-medium text-slate-700">${cat}</span>
-                    </div>
-                    <span class="font-bold text-slate-900">${weight} <span class="text-sm font-medium text-slate-500">ပိဿာ</span></span>
-                </div>
-            `;
+    const ctxEl = document.getElementById('myChart');
+    if(ctxEl) {
+        const ctx = ctxEl.getContext('2d');
+        if (reportChartInstance) reportChartInstance.destroy();
+        reportChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: labels, datasets: [{ label: 'အလေးချိန် (ပိဿာ)', data: data, backgroundColor: '#4f46e5', borderRadius: 4 }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
         });
+    }
+
+    const listEl = document.getElementById('reportList');
+    if(listEl) {
+        listEl.innerHTML = '';
+        if (sortedCats.length === 0) {
+            listEl.innerHTML = '<p class="text-slate-400 text-sm italic text-center py-4">အချက်အလက် မရှိပါ</p>';
+        } else {
+            sortedCats.forEach(([cat, weight], index) => {
+                listEl.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-50 border border-slate-100 p-3 rounded-xl">
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-full bg-indigo-100 text-primary flex items-center justify-center text-xs font-bold">${index + 1}</span>
+                            <span class="font-medium text-slate-700">${cat}</span>
+                        </div>
+                        <span class="font-bold text-slate-900">${weight} <span class="text-sm font-medium text-slate-500">ပိဿာ</span></span>
+                    </div>
+                `;
+            });
+        }
     }
 }
 
@@ -278,10 +298,9 @@ document.getElementById('applyCustomDateBtn').addEventListener('click', () => re
 // ==============================
 // Data Backup & Restore (Excel)
 // ==============================
-
-// Export CSV
 document.getElementById("exportDataBtn").addEventListener("click", () => {
-    const vouchers = JSON.parse(localStorage.getItem("vouchers") || "[]");
+    let vouchers = [];
+    try { vouchers = JSON.parse(localStorage.getItem("vouchers") || "[]"); } catch(e){}
     if (vouchers.length === 0) {
         showAlert("အချက်အလက် မရှိပါ", "Excel ဖြင့်ထုတ်ရန် မှတ်တမ်း မရှိသေးပါ။");
         return;
@@ -316,7 +335,6 @@ document.getElementById("exportDataBtn").addEventListener("click", () => {
     document.body.removeChild(link);
 });
 
-// Import CSV (Restore)
 document.getElementById('importDataBtn').addEventListener('click', () => {
     document.getElementById('importCsvInput').click();
 });
@@ -328,13 +346,9 @@ function parseCSVLine(text) {
     for (let i = 0; i < text.length; i++) {
         let char = text[i];
         if (inQuote) {
-            if (char === '"' && i + 1 < text.length && text[i + 1] === '"') {
-                value += '"'; i++;
-            } else if (char === '"') {
-                inQuote = false;
-            } else {
-                value += char;
-            }
+            if (char === '"' && i + 1 < text.length && text[i + 1] === '"') { value += '"'; i++; } 
+            else if (char === '"') { inQuote = false; } 
+            else { value += char; }
         } else {
             if (char === '"') inQuote = true;
             else if (char === ',') { ret.push(value); value = ''; }
@@ -352,7 +366,7 @@ document.getElementById('importCsvInput').addEventListener('change', function(e)
     const reader = new FileReader();
     reader.onload = function(event) {
         let csvText = event.target.result;
-        if(csvText.charCodeAt(0) === 0xFEFF) csvText = csvText.slice(1); // Remove BOM
+        if(csvText.charCodeAt(0) === 0xFEFF) csvText = csvText.slice(1); 
         
         const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
         if(lines.length < 2) {
@@ -389,12 +403,12 @@ document.getElementById('importCsvInput').addEventListener('change', function(e)
 
         const newVouchers = Object.values(voucherMap);
         if(newVouchers.length > 0) {
-            localStorage.setItem("vouchers", JSON.stringify(newVouchers));
+            try { localStorage.setItem("vouchers", JSON.stringify(newVouchers)); } catch(err){}
             showAlert("အောင်မြင်ပါသည်", "အချက်အလက်များကို အောင်မြင်စွာ ပြန်လည်ထည့်သွင်းပြီးပါပြီ။");
         } else {
             showAlert("အမှား", "ဖိုင်ထဲမှ အချက်အလက်များကို ဆွဲယူ၍ မရပါ။");
         }
-        e.target.value = ''; // Reset input
+        e.target.value = ''; 
     };
     reader.readAsText(file);
 });
@@ -412,26 +426,29 @@ let touchDragStartY = 0;
 
 function getCategories() {
     const defaultCats = ["ငါးမြစ်ချင်း", "ငါးကြင်း", "ငါးခေါင်းပွ", "ငါးရွှေဝါ", "ငါးဒန်", "ကက်ကဒစ်", "တီလားဘီးယား", "ငါးဖယ်", "ငါးခုံးမ", "ငါးနုတ်စုံ"];
-    const saved = localStorage.getItem("categories");
-    if (saved) {
-        let parsedCats = JSON.parse(saved);
-        if (!parsedCats.includes("တီလားဘီးယား")) {
-            const mergedCats = [...new Set([...defaultCats, ...parsedCats])];
-            localStorage.setItem("categories", JSON.stringify(mergedCats));
-            return mergedCats;
+    try {
+        const saved = localStorage.getItem("categories");
+        if (saved) {
+            let parsedCats = JSON.parse(saved);
+            if (!parsedCats.includes("တီလားဘီးယား")) {
+                const mergedCats = [...new Set([...defaultCats, ...parsedCats])];
+                localStorage.setItem("categories", JSON.stringify(mergedCats));
+                return mergedCats;
+            }
+            return parsedCats;
         }
-        return parsedCats;
-    }
-    localStorage.setItem("categories", JSON.stringify(defaultCats));
+        localStorage.setItem("categories", JSON.stringify(defaultCats));
+    } catch(e) {}
     return defaultCats;
 }
 
 function saveCategories(categories) {
-    localStorage.setItem("categories", JSON.stringify(categories));
+    try { localStorage.setItem("categories", JSON.stringify(categories)); } catch(e){}
 }
 
 function populateFishCategoryDropdown() {
     const categories = getCategories();
+    if(!fishCategorySelect) return;
     fishCategorySelect.innerHTML = '<option value="">ငါးအမျိုးအစား ရွေးပါ...</option>';
     categories.forEach(category => {
         const option = document.createElement("option");
@@ -444,6 +461,7 @@ populateFishCategoryDropdown();
 
 function renderCategoryList() {
     const categories = getCategories();
+    if(!categoryList) return;
     categoryList.innerHTML = "";
     categories.forEach(category => {
         const item = document.createElement("div");
@@ -490,65 +508,69 @@ function renderCategoryList() {
     });
 }
 
-categoryList.addEventListener("touchmove", function (e) {
-    if (!touchDragItem) return;
-    e.preventDefault();
-    const touchY = e.touches[0].clientY;
-    const deltaY = touchY - touchDragStartY;
-    touchDragItem.style.transform = `translateY(${deltaY}px)`;
+if(categoryList) {
+    categoryList.addEventListener("touchmove", function (e) {
+        if (!touchDragItem) return;
+        e.preventDefault();
+        const touchY = e.touches[0].clientY;
+        const deltaY = touchY - touchDragStartY;
+        touchDragItem.style.transform = `translateY(${deltaY}px)`;
 
-    const items = Array.from(categoryList.children);
-    const draggedRect = touchDragItem.getBoundingClientRect();
-    const draggedCenterY = draggedRect.top + draggedRect.height / 2;
+        const items = Array.from(categoryList.children);
+        const draggedRect = touchDragItem.getBoundingClientRect();
+        const draggedCenterY = draggedRect.top + draggedRect.height / 2;
 
-    for (let i = 0; i < items.length; i++) {
-        const sibling = items[i];
-        if (sibling === touchDragItem) continue;
-        const sibRect = sibling.getBoundingClientRect();
-        const sibCenterY = sibRect.top + sibRect.height / 2;
+        for (let i = 0; i < items.length; i++) {
+            const sibling = items[i];
+            if (sibling === touchDragItem) continue;
+            const sibRect = sibling.getBoundingClientRect();
+            const sibCenterY = sibRect.top + sibRect.height / 2;
 
-        if (Math.abs(draggedCenterY - sibCenterY) < sibRect.height / 2) {
-            const draggedIdx = items.indexOf(touchDragItem);
-            if (draggedIdx < i) {
-                categoryList.insertBefore(touchDragItem, sibling.nextSibling);
-            } else {
-                categoryList.insertBefore(touchDragItem, sibling);
+            if (Math.abs(draggedCenterY - sibCenterY) < sibRect.height / 2) {
+                const draggedIdx = items.indexOf(touchDragItem);
+                if (draggedIdx < i) {
+                    categoryList.insertBefore(touchDragItem, sibling.nextSibling);
+                } else {
+                    categoryList.insertBefore(touchDragItem, sibling);
+                }
+                touchDragStartY = touchY;
+                touchDragItem.style.transform = "translateY(0px)";
+                break;
             }
-            touchDragStartY = touchY;
-            touchDragItem.style.transform = "translateY(0px)";
-            break;
         }
-    }
-}, { passive: false });
+    }, { passive: false });
 
-categoryList.addEventListener("touchend", function () {
-    if (!touchDragItem) return;
-    touchDragItem.classList.remove("dragging");
-    touchDragItem.style.transform = "";
-    
-    const newOrder = Array.from(categoryList.children).map(item => item.dataset.category);
-    saveCategories(newOrder);
-    populateFishCategoryDropdown();
-    touchDragItem = null;
-});
+    categoryList.addEventListener("touchend", function () {
+        if (!touchDragItem) return;
+        touchDragItem.classList.remove("dragging");
+        touchDragItem.style.transform = "";
+        
+        const newOrder = Array.from(categoryList.children).map(item => item.dataset.category);
+        saveCategories(newOrder);
+        populateFishCategoryDropdown();
+        touchDragItem = null;
+    });
+}
 
-addCategoryBtn.addEventListener("click", function () {
-    const newCat = newCategoryInput.value.trim();
-    if (newCat === "") {
-        showAlert("လိုအပ်ပါသည်", "ငါးအမည် အသစ်ရိုက်ထည့်ပါ။");
-        return;
-    }
-    const categories = getCategories();
-    if (categories.includes(newCat)) {
-        showAlert("ရှိပြီးသားဖြစ်နေပါသည်", "ဤအမည်မှာ ရှိပြီးသားဖြစ်ပါသည်။");
-        return;
-    }
-    categories.push(newCat);
-    saveCategories(categories);
-    newCategoryInput.value = "";
-    renderCategoryList();
-    populateFishCategoryDropdown();
-});
+if(addCategoryBtn) {
+    addCategoryBtn.addEventListener("click", function () {
+        const newCat = newCategoryInput.value.trim();
+        if (newCat === "") {
+            showAlert("လိုအပ်ပါသည်", "ငါးအမည် အသစ်ရိုက်ထည့်ပါ။");
+            return;
+        }
+        const categories = getCategories();
+        if (categories.includes(newCat)) {
+            showAlert("ရှိပြီးသားဖြစ်နေပါသည်", "ဤအမည်မှာ ရှိပြီးသားဖြစ်ပါသည်။");
+            return;
+        }
+        categories.push(newCat);
+        saveCategories(categories);
+        newCategoryInput.value = "";
+        renderCategoryList();
+        populateFishCategoryDropdown();
+    });
+}
 
 // ==============================
 // VOUCHER DATA LOGIC
@@ -566,31 +588,25 @@ let voucherStatus = "OPEN";
 let currentVoucherOpenedAt = null;
 let currentVoucherClosedAt = null;
 
-// Enter Key ကို နှိပ်လျှင် ခလုတ်နှိပ်သကဲ့သို့ အလိုအလျောက် စာရင်းသွင်းပေးရန်
-fishWeightInput.addEventListener("keypress", function (e) {
-    if (e.key === "Enter") {
-        e.preventDefault(); // Enter ရိုက်လျှင် အခြားပုံမှန် Browser အလုပ်များမလုပ်စေရန် တားဆီးသည်
-        document.getElementById("addEntryBtn").click();
-    }
-});
-
-window.addEventListener("beforeunload", function (e) {
-    if (document.getElementById('recordingScreen').classList.contains('flex') && voucherStatus === "OPEN") {
-        e.preventDefault();
-        e.returnValue = "";
-        return "";
-    }
-});
+if(fishWeightInput) {
+    fishWeightInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault(); 
+            document.getElementById("addEntryBtn").click();
+        }
+    });
+}
 
 function saveVoucher() {
-    const vouchers = JSON.parse(localStorage.getItem("vouchers") || "[]");
+    let vouchers = [];
+    try { vouchers = JSON.parse(localStorage.getItem("vouchers") || "[]"); } catch(e){}
     const vNo = voucherNumberInput.value.trim();
     const voucher = {
         voucherNumber: vNo,
         voucherDate: voucherDateInput.value,
-        userName: localStorage.getItem("userName"),
+        userName: localStorage.getItem("userName") || "Unknown",
         entries: entries,
-        remark: voucherRemarkEl.value.trim(),
+        remark: voucherRemarkEl ? voucherRemarkEl.value.trim() : "",
         status: voucherStatus,
         openedAt: currentVoucherOpenedAt,
         closedAt: currentVoucherClosedAt
@@ -602,18 +618,19 @@ function saveVoucher() {
     } else {
         vouchers.push(voucher);
     }
-    localStorage.setItem("vouchers", JSON.stringify(vouchers));
+    try { localStorage.setItem("vouchers", JSON.stringify(vouchers)); } catch(e){}
 }
 
 function updateTotals() {
     let total = entries.reduce((sum, e) => sum + e.weight, 0);
-    overallTotalEl.textContent = total;
+    if(overallTotalEl) overallTotalEl.textContent = total;
 
     const catTotals = {};
     entries.forEach(e => {
         catTotals[e.category] = (catTotals[e.category] || 0) + e.weight;
     });
     
+    if(!categoryTotalsContainer) return;
     categoryTotalsContainer.innerHTML = "";
     if(Object.keys(catTotals).length === 0) {
          categoryTotalsContainer.innerHTML = '<p class="text-slate-400 text-sm italic col-span-2 text-center py-2">အချက်အလက် မရှိပါ</p>';
@@ -633,6 +650,7 @@ function updateTotals() {
 }
 
 function renderRecentEntries() {
+    if(!entryListContainer) return;
     entryListContainer.innerHTML = "";
     const recent = entries.slice(-3).reverse();
     if(recent.length === 0) {
@@ -654,7 +672,8 @@ document.getElementById("startVoucherBtn").addEventListener("click", function ()
     if (vNo === "") { showAlert("လိုအပ်ပါသည်", "ကျေးဇူးပြု၍ ဘောင်ချာနံပါတ် ထည့်ပါ။"); return; }
     if (vDate === "") { showAlert("လိုအပ်ပါသည်", "ကျေးဇူးပြု၍ နေ့စွဲ ရွေးချယ်ပါ။"); return; }
 
-    const existingVouchers = JSON.parse(localStorage.getItem("vouchers") || "[]");
+    let existingVouchers = [];
+    try { existingVouchers = JSON.parse(localStorage.getItem("vouchers") || "[]"); } catch(e){}
     const dup = existingVouchers.find(v => v.voucherNumber === vNo);
 
     if (dup) {
@@ -672,9 +691,9 @@ document.getElementById("startVoucherBtn").addEventListener("click", function ()
     document.getElementById("displayVoucherNumber").textContent = vNo;
     document.getElementById("displayVoucherDate").textContent = vDate;
     
-    fishCategorySelect.value = "";
-    fishWeightInput.value = "";
-    voucherRemarkEl.value = "";
+    if(fishCategorySelect) fishCategorySelect.value = "";
+    if(fishWeightInput) fishWeightInput.value = "";
+    if(voucherRemarkEl) voucherRemarkEl.value = "";
     
     toggleRecordingControls(false);
     updateTotals();
@@ -699,11 +718,11 @@ document.getElementById("addEntryBtn").addEventListener("click", function () {
     updateTotals();
     renderRecentEntries();
     
-    // ဂဏန်းရိုက်သည့်အကွက်ကို ရှင်းမည်၊ ပြီးလျှင် Keyboard ပြန်မပျောက်သွားစေရန် ထိုအကွက်ကိုပဲ ချက်ချင်း (Focus) ပြန်လုပ်ပေးမည်
+    showToast(`"${cat}" (${weight} ပိဿာ) သွင်းပြီးပါပြီ`);
+    
     fishWeightInput.value = "";
     saveVoucher();
     
-    // မိုဘိုင်း Browser အချို့တွင် အနည်းငယ်စောင့်ပြီးမှ Focus လုပ်ပါက ပိုအဆင်ပြေပါသည်
     setTimeout(() => {
         fishWeightInput.focus();
     }, 50);
@@ -734,15 +753,20 @@ document.getElementById("closeVoucherBtn").addEventListener("click", function ()
 });
 
 function toggleRecordingControls(disabled) {
-    fishCategorySelect.disabled = disabled;
-    fishWeightInput.disabled = disabled;
-    document.getElementById("addEntryBtn").disabled = disabled;
-    document.getElementById("deleteLatestBtn").disabled = disabled;
-    voucherRemarkEl.disabled = disabled;
-    document.getElementById("closeVoucherBtn").disabled = disabled;
+    if(fishCategorySelect) fishCategorySelect.disabled = disabled;
+    if(fishWeightInput) fishWeightInput.disabled = disabled;
+    const addBtn = document.getElementById("addEntryBtn");
+    const delBtn = document.getElementById("deleteLatestBtn");
+    const closeBtn = document.getElementById("closeVoucherBtn");
     
-    const els = [fishCategorySelect, fishWeightInput, document.getElementById("addEntryBtn"), document.getElementById("deleteLatestBtn"), voucherRemarkEl, document.getElementById("closeVoucherBtn")];
+    if(addBtn) addBtn.disabled = disabled;
+    if(delBtn) delBtn.disabled = disabled;
+    if(voucherRemarkEl) voucherRemarkEl.disabled = disabled;
+    if(closeBtn) closeBtn.disabled = disabled;
+    
+    const els = [fishCategorySelect, fishWeightInput, addBtn, delBtn, voucherRemarkEl, closeBtn];
     els.forEach(el => {
+        if(!el) return;
         if(disabled) el.classList.add("opacity-50");
         else el.classList.remove("opacity-50");
     });
@@ -756,7 +780,8 @@ const historySearch = document.getElementById("historySearch");
 const historyDate = document.getElementById("historyDate");
 
 function displayHistory() {
-    let vouchers = JSON.parse(localStorage.getItem("vouchers") || "[]");
+    let vouchers = [];
+    try { vouchers = JSON.parse(localStorage.getItem("vouchers") || "[]"); } catch(e){}
     const search = historySearch.value.trim().toLowerCase();
     const dateF = historyDate.value;
     historyList.innerHTML = "";
@@ -837,9 +862,10 @@ function displayHistory() {
         delBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             showConfirm("ဘောင်ချာဖျက်ရန်", `ဘောင်ချာ "${v.voucherNumber}" ကို ဖျက်ရန် သေချာပါသလား? ဖျက်ပြီးပါက ပြန်ယူ၍ မရနိုင်ပါ။`, () => {
-                let all = JSON.parse(localStorage.getItem("vouchers") || "[]");
+                let all = [];
+                try { all = JSON.parse(localStorage.getItem("vouchers") || "[]"); } catch(e){}
                 all = all.filter(i => i.voucherNumber !== v.voucherNumber);
-                localStorage.setItem("vouchers", JSON.stringify(all));
+                try { localStorage.setItem("vouchers", JSON.stringify(all)); } catch(e){}
                 displayHistory();
             });
         });
@@ -848,9 +874,10 @@ function displayHistory() {
     });
 }
 
-historySearch.addEventListener("input", displayHistory);
-historyDate.addEventListener("change", displayHistory);
-document.getElementById("clearDateBtn").addEventListener("click", () => { historyDate.value = ""; displayHistory(); });
+if(historySearch) historySearch.addEventListener("input", displayHistory);
+if(historyDate) historyDate.addEventListener("change", displayHistory);
+const clearDateBtn = document.getElementById("clearDateBtn");
+if(clearDateBtn) clearDateBtn.addEventListener("click", () => { historyDate.value = ""; displayHistory(); });
 
 function openVoucherDetail(v) {
     const content = document.getElementById("voucherDetailContent");
@@ -957,11 +984,13 @@ function openVoucherForEntry(voucher) {
     currentVoucherOpenedAt = voucher.openedAt || new Date().toISOString();
     currentVoucherClosedAt = null;
 
-    voucherNumberInput.value = voucher.voucherNumber || "";
-    voucherDateInput.value = voucher.voucherDate || "";
-    document.getElementById("displayVoucherNumber").textContent = voucher.voucherNumber || "";
-    document.getElementById("displayVoucherDate").textContent = voucher.voucherDate || "";
-    voucherRemarkEl.value = voucher.remark || "";
+    if(voucherNumberInput) voucherNumberInput.value = voucher.voucherNumber || "";
+    if(voucherDateInput) voucherDateInput.value = voucher.voucherDate || "";
+    const dispNo = document.getElementById("displayVoucherNumber");
+    const dispDate = document.getElementById("displayVoucherDate");
+    if(dispNo) dispNo.textContent = voucher.voucherNumber || "";
+    if(dispDate) dispDate.textContent = voucher.voucherDate || "";
+    if(voucherRemarkEl) voucherRemarkEl.value = voucher.remark || "";
 
     toggleRecordingControls(false);
     renderRecentEntries();

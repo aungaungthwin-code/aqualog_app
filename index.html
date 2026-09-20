@@ -39,8 +39,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased overflow-x-hidden selection:bg-indigo-100 selection:text-indigo-900">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased overflow-x-hidden selection:bg-indigo-100 selection:text-indigo-900 relative">
     
+    <!-- Toast Notification (အောင်မြင်ကြောင်း အသိပေးချက်) -->
+    <div id="toastMessage" class="fixed top-16 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-2xl z-[999] opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 translate-y-[-20px] min-w-[250px] border border-slate-700">
+        <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        <span id="toastText" class="font-bold text-sm leading-snug">စာရင်းသွင်းပြီးပါပြီ</span>
+    </div>
+
     <!-- Modal (အသိပေးချက်) -->
     <div id="customModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden transform transition-all">
@@ -137,7 +145,8 @@
 
     <!-- 📊 Dashboard Report Screen -->
     <div id="reportScreen" class="hidden min-h-screen flex-col bg-slate-50">
-        <div class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center">
+        <!-- Removed sticky top-0 -->
+        <div class="bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center">
             <button id="backReportBtn" class="p-2 -ml-2 text-primary rounded-full hover:bg-indigo-50 transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
             </button>
@@ -157,7 +166,6 @@
                         <div class="flex-1">
                             <label class="text-[10px] text-slate-500 font-bold ml-1 mb-1 block">စတင်မည့်ရက်</label>
                             <div class="relative">
-                                <!-- readonly ထည့်ထားသည် -->
                                 <input type="text" id="reportStartDate" readonly class="w-full px-3 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-slate-800 text-sm font-medium shadow-sm pr-9 cursor-pointer placeholder-slate-400" placeholder="ရက်စွဲရွေးပါ">
                                 <div class="absolute right-0 top-1/2 -translate-y-1/2 pr-3 pointer-events-none text-slate-400">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -167,7 +175,6 @@
                         <div class="flex-1">
                             <label class="text-[10px] text-slate-500 font-bold ml-1 mb-1 block">ဆုံးမည့်ရက်</label>
                             <div class="relative">
-                                <!-- readonly ထည့်ထားသည် -->
                                 <input type="text" id="reportEndDate" readonly class="w-full px-3 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-slate-800 text-sm font-medium shadow-sm pr-9 cursor-pointer placeholder-slate-400" placeholder="ရက်စွဲရွေးပါ">
                                 <div class="absolute right-0 top-1/2 -translate-y-1/2 pr-3 pointer-events-none text-slate-400">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -181,18 +188,15 @@
                 </div>
             </div>
 
-            <!-- လုံးပေါင်း Total Card -->
             <div class="bg-gradient-to-br from-indigo-500 to-primary rounded-2xl p-5 text-white shadow-md text-center mb-4">
                 <h3 class="text-sm font-semibold text-indigo-100 uppercase tracking-wide mb-1">စုစုပေါင်း အလေးချိန် (လုံးပေါင်း)</h3>
                 <p class="text-3xl font-extrabold"><span id="reportGrandTotal">0</span> <span class="text-lg font-medium text-indigo-100">ပိဿာ</span></p>
             </div>
 
-            <!-- Chart -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-4">
                 <canvas id="myChart" class="w-full h-64"></canvas>
             </div>
 
-            <!-- Sorted List -->
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                 <h3 class="font-bold text-slate-800 mb-4 text-sm uppercase tracking-wide border-b border-slate-100 pb-2">အများဆုံးမှ အနည်းဆုံးသို့ အဆင့်များ</h3>
                 <div id="reportList" class="space-y-3"></div>
@@ -202,7 +206,8 @@
 
     <!-- 💾 Data Backup & Restore Screen -->
     <div id="backupRestoreScreen" class="hidden min-h-screen flex-col bg-slate-50">
-        <div class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center">
+        <!-- Removed sticky top-0 -->
+        <div class="bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center">
             <button id="backBackupBtn" class="p-2 -ml-2 text-primary rounded-full hover:bg-indigo-50 transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
             </button>
@@ -237,7 +242,8 @@
 
     <!-- Voucher Screen -->
     <div id="voucherScreen" class="hidden min-h-screen flex-col bg-slate-50">
-        <div class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center">
+        <!-- Removed sticky top-0 -->
+        <div class="bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center">
             <button id="backHomeBtn" class="p-2 -ml-2 text-primary rounded-full hover:bg-indigo-50 transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
             </button>
@@ -255,7 +261,6 @@
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-2">နေ့စွဲ</label>
                     <div class="relative">
-                        <!-- readonly ထည့်ထားသည် -->
                         <input type="text" id="voucherDate" readonly class="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-slate-800 font-medium shadow-sm pr-10 cursor-pointer placeholder-slate-400" placeholder="ရက်စွဲရွေးပါ">
                         <div class="absolute right-0 top-1/2 -translate-y-1/2 pr-4 pointer-events-none text-slate-400">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -269,9 +274,10 @@
         </div>
     </div>
 
-    <!-- Recording Screen -->
-    <div id="recordingScreen" class="hidden min-h-screen flex-col bg-slate-50 pb-28">
-        <div class="sticky top-0 z-40 bg-gradient-to-r from-primary to-secondary shadow-md px-4 py-3 flex flex-col">
+    <!-- Recording Screen (စာရင်းသွင်းရန် စာမျက်နှာ - Overlap ပြဿနာ ရှင်းထားသည်) -->
+    <div id="recordingScreen" class="hidden min-h-screen flex-col bg-slate-50 pb-8">
+        <!-- ဤနေရာမှ sticky ကို ဖယ်ရှားထားသဖြင့် အောက်သို့ ဆွဲချပါက လိုက်ဆင်းမည်မဟုတ်တော့ပါ -->
+        <div class="bg-gradient-to-r from-primary to-secondary shadow-md px-4 py-3 flex flex-col">
             <div class="flex items-center text-white mb-3">
                 <button id="backVoucherBtn" class="p-2 -ml-2 rounded-full hover:bg-white/20 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
@@ -302,7 +308,6 @@
                     <span class="text-xl">⚖️</span> အသစ်ထည့်ရန်
                 </h3>
                 
-                <!-- CUSTOM DROPDOWN UI IMPLEMENTATION -->
                 <div class="mb-4">
                     <label class="block text-sm font-semibold text-slate-700 mb-2">ငါးအမျိုးအစား</label>
                     <div class="relative" id="customFishCategoryDropdown">
@@ -319,7 +324,6 @@
                             </ul>
                         </div>
                         
-                        <!-- Keep original select hidden so app.js continues to work perfectly -->
                         <select id="fishCategory" class="hidden">
                             <option value="">ငါးအမျိုးအစား ရွေးပါ...</option>
                         </select>
@@ -366,10 +370,9 @@
                     <textarea id="voucherRemark" placeholder="မှတ်ချက်ရေးရန် (မရေးလည်းရပါသည်)..." rows="3" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-slate-700 resize-none"></textarea>
                 </div>
             </div>
-        </div>
 
-        <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-slate-200 z-40">
-            <div class="max-w-lg mx-auto">
+            <!-- "ဘောင်ချာပိတ်မည်" ခလုတ်ကို အောက်ဆုံးသို့ ရွှေ့လိုက်သဖြင့် ဖုံးနေမည်မဟုတ်တော့ပါ -->
+            <div class="pt-2 pb-6">
                 <button id="closeVoucherBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-200 transition-all active:scale-95 text-lg flex justify-center items-center gap-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                     ဘောင်ချာ ပိတ်မည်
@@ -380,7 +383,8 @@
 
     <!-- History Screen -->
     <div id="historyScreen" class="hidden min-h-screen flex-col bg-slate-50">
-        <div class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+        <!-- Removed sticky top-0 -->
+        <div class="bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center">
                 <button id="backHistoryBtn" class="p-2 -ml-2 text-secondary rounded-full hover:bg-blue-50 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
@@ -399,7 +403,6 @@
                 </div>
                 <div class="flex gap-2">
                     <div class="relative flex-grow">
-                        <!-- readonly ထည့်ထားသည် -->
                         <input type="text" id="historyDate" readonly class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-all text-sm font-medium text-slate-800 shadow-sm pr-10 cursor-pointer placeholder-slate-400" placeholder="ရက်စွဲရွေးပါ">
                         <div class="absolute right-0 top-1/2 -translate-y-1/2 pr-3 pointer-events-none text-slate-400">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -417,7 +420,8 @@
 
     <!-- Voucher Detail Screen -->
     <div id="detailScreen" class="hidden min-h-screen flex-col bg-slate-50">
-        <div class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+        <!-- Removed sticky top-0 -->
+        <div class="bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center">
                 <button id="backDetailBtn" class="p-2 -ml-2 text-primary rounded-full hover:bg-indigo-50 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
@@ -439,7 +443,8 @@
 
     <!-- Category Management Screen -->
     <div id="categoryScreen" class="hidden min-h-screen flex-col bg-slate-50">
-        <div class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center">
+        <!-- Removed sticky top-0 -->
+        <div class="bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center">
             <button id="backCategoryBtn" class="p-2 -ml-2 text-slate-700 rounded-full hover:bg-slate-100 transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
             </button>
@@ -512,14 +517,12 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
-            // 1. Initialize Date Pickers with Flatpickr (စာရိုက်မရအောင် allowInput: false ထပ်ထည့်ထားသည်)
             flatpickr('input[type="text"][id$="Date"]', {
                 dateFormat: "Y-m-d",
                 disableMobile: true,
                 allowInput: false
             });
 
-            // 2. Custom Dropdown Logic for Fish Categories
             const selectEl = document.getElementById('fishCategory');
             const btnEl = document.getElementById('fishCategoryBtn');
             const labelEl = document.getElementById('fishCategoryLabel');
@@ -528,25 +531,22 @@
 
             if(selectEl && btnEl && menuEl) {
                 
-                // Toggle Custom Dropdown
                 btnEl.addEventListener('click', (e) => {
                     e.preventDefault();
                     menuEl.classList.toggle('hidden');
                     updateOptions();
                 });
 
-                // Close when clicking anywhere else
                 document.addEventListener('click', (e) => {
                     if (!btnEl.contains(e.target) && !menuEl.contains(e.target)) {
                         menuEl.classList.add('hidden');
                     }
                 });
 
-                // Dynamically build the beautiful dropdown list from the hidden select's options
                 function updateOptions() {
                     listWrapper.innerHTML = '';
                     Array.from(selectEl.options).forEach((option, index) => {
-                        if (index === 0) return; // Skip placeholder
+                        if (index === 0) return; 
                         const li = document.createElement('li');
                         li.className = 'px-5 py-3.5 cursor-pointer hover:bg-indigo-50 hover:text-primary transition-colors border-b border-slate-50 last:border-0';
                         li.textContent = option.textContent;
@@ -561,7 +561,6 @@
                     });
                 }
 
-                // Keep Label synced when app.js resets the select value
                 const originalSet = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value').set;
                 const originalGet = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value').get; 
                 
@@ -579,7 +578,6 @@
                     }
                 });
 
-                // Sync "Disabled" state from app.js when voucher is closed
                 const observer = new MutationObserver((mutations) => {
                     mutations.forEach((m) => {
                         if(m.attributeName === 'class') {

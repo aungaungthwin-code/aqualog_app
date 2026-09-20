@@ -1,11 +1,13 @@
-const CACHE_NAME = 'aqualog-cache-v2';
+const CACHE_NAME = 'aqualog-cache-v3';
 const urlsToCache = [
     './',
     './index.html',
     './css/style.css',
     './js/app.js',
     './img/icon-192.png',
-    './img/icon-512.png'
+    './img/icon-512.png',
+    './img/fish_pond.jpg',
+    './img/myitchin_fish.jpg'
 ];
 
 self.addEventListener('install', event => {
